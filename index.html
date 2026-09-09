@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CARE Business Memory</title>
+
+<style>
+@font-face {
+    font-family: "Chopsic";
+    src: url("Chopsic.otf") format("opentype");
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #f7f7f7;
+    font-family: Arial, sans-serif;
+    color: #222;
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+    padding: 45px 25px;
+}
+
+.logo {
+    font-family: "Chopsic", sans-serif;
+    font-size: 60px;
+    letter-spacing: 3px;
+    color: #C9A227;
+    text-align: center;
+}
+
+.subtitle {
+    text-align: center;
+    color: #777;
+    font-size: 18px;
+    margin-top: 5px;
+    margin-bottom: 40px;
+}
+
+.voice-box {
+    background: white;
+    border-radius: 22px;
+    padding: 35px 25px;
+    text-align: center;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.08);
+    margin-bottom: 25px;
+}
+
+.voice-box h1 {
+    margin: 0 0 10px;
+    font-size: 25px;
+}
+
+.voice-description {
+    color: #777;
+    margin-bottom: 25px;
+}
+
+.mic-button {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: none;
+    background: #C9A227;
+    color: white;
+    font-size: 48px;
+    cursor: pointer;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    transition: 0.2s;
+}
+
+.mic-button:hover {
+    transform: scale(1.05);
+}
+
+.mic-button.listening {
+    animation: pulse 1.2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+    100% { transform: scale(1); }
+}
+
+.status {
+    margin-top: 20px;
+    font-size: 17px;
+    color: #666;
+}
+
+.transcript {
+    margin-top: 20px;
+    background: #f7f7f7;
+    border-radius: 12px;
+    padding: 18px;
+    text-align: left;
+    min-height: 60px;
+    color: #444;
+}
+
+.info-box,
+.ask-box {
+    background: white;
+    border-radius: 18px;
+    padding: 25px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+    margin-bottom: 25px;
+}
+
+.info-box h2,
+.ask-box h2 {
+    margin-top: 0;
+}
+
+.info-row {
+    padding: 13px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.label {
+    color: #999;
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+
+.value {
+    font-size: 17px;
+}
+
+.save-button {
+    width: 100%;
+    background: #C9A227;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 16px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+.ask-button {
+    width: 100%;
+    background: #222;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 16px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.ask-result {
+    margin-top: 18px;
+    background: #f7f7f7;
+    padding: 18px;
+    border-radius: 10px;
+    display: none;
+}
+
+.footer {
+    text-align: center;
+    color: #aaa;
+    font-size: 13px;
+    margin-top: 35px;
+}
+
+@media (max-width: 600px) {
+    .logo {
+        font-size: 45px;
+    }
+
+    .mic-button {
+        width: 105px;
+        height: 105px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="logo">CARE</div>
+
+    <div class="subtitle">
+        Business Memory
+    </div>
+
+    <div class="voice-box">
+
+        <h1>🎙️ Talk to CARE</h1>
+
+        <div class="voice-description">
+            Tell CARE about your customer, vehicle, job and anything important.
+        </div>
+
+        <button
+            id="micButton"
+            class="mic-button"
+            onclick="startListening()">
+            🎙️
+        </button>
+
+        <div id="status" class="status">
+            Tap the microphone and start talking
+        </div>
+
+        <div id="transcript" class="transcript">
+            Your conversation will appear here...
+        </div>
+
+    </div>
+
+
+    <div class="info-box">
+
+        <h2>CARE understood</h2>
+
+        <div class="info-row">
+            <div class="label">CUSTOMER</div>
+            <div id="customer" class="value">—</div>
+        </div>
+
+        <div class="info-row">
+            <div class="label">MOBILE</div>
+            <div id="mobile" class="value">—</div>
+        </div>
+
+        <div class="info-row">
+            <div class="label">EMAIL</div>
+            <div id="email" class="value">—</div>
+        </div>
+
+        <div class="info-row">
+            <div class="label">VEHICLE</div>
+            <div id="vehicle" class="value">—</div>
+        </div>
+
+        <div class="info-row">
+            <div class="label">JOB / PROBLEM</div>
+            <div id="job" class="value">—</div>
+        </div>
+
+        <div class="info-row">
+            <div class="label">WHAT NEEDS TO BE DONE</div>
+            <div id="work" class="value">—</div>
+        </div>
+
+        <div class="info-row">
+            <div class="label">FOLLOW-UP</div>
+            <div id="followup" class="value">—</div>
+        </div>
+
+        <div class="info-row">
+            <div class="label">PROMISE</div>
+            <div id="promise" class="value">—</div>
+        </div>
+
+        <div class="info-row">
+            <div class="label">IMPORTANT MEMORY</div>
+            <div id="memory" class="value">—</div>
+        </div>
+
+        <button
+            class="save-button"
+            onclick="saveCustomer()">
+            💾 Save to CARE
+        </button>
+
+    </div>
+
+
+  <div class="info-box">
+
+    <h2>👥 Customer Memory</h2>
+
+    <div id="customerList">
+        No customers saved yet.
+    </div>
+
+</div>
+  <div class="ask-box">
+
+        <h2>🧠 Ask CARE</h2>
+
+        <p>
+            Ask about a customer or something CARE has remembered.
+        </p>
+
+        <button
+            class="ask-button"
+            onclick="askCare()">
+            🎙️ Ask CARE
+        </button>
+
+        <div id="askResult" class="ask-result"></div>
+
+    </div>
+
+
+    <div class="footer">
+        CARE Business Memory
+    </div>
+
+</div>
+
+
+<script>
+
+let currentCustomer = {
+    name: "",
+    mobile: "",
+    email: "",
+    vehicle: "",
+    job: "",
+    work: "",
+    followup: "",
+    promise: "",
+    memory: ""
+};
+
+let customers =
+    JSON.parse(localStorage.getItem("careBusinessCustomers")) || [];
+
+window.loadCustomer = function(index) {
+    currentCustomer = { ...customers[index] };
+    updateDisplay();
+    document.getElementById("status").innerText =
+        "Customer loaded: " + (currentCustomer.name || "Unknown");
+};
+
+
+
+const SpeechRecognition =
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
+
+let recognition = null;
+let listeningForQuestion = false;
+
+
+if (SpeechRecognition) {
+
+    recognition = new SpeechRecognition();
+
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = "en-US";
+
+
+    recognition.onstart = function() {
+
+        document
+            .getElementById("micButton")
+            .classList.add("listening");
+
+        document.getElementById("status").innerText =
+            listeningForQuestion
+            ? "CARE is listening to your question..."
+            : "CARE is listening...";
+
+    };
+
+
+    recognition.onresult = function(event) {
+
+        const text =
+            event.results[0][0].transcript;
+
+        document.getElementById("transcript").innerText =
+            text;
+
+        document.getElementById("status").innerText =
+            "CARE is understanding...";
+
+        if (listeningForQuestion) {
+
+            processQuestion(text);
+
+        } else {
+
+            processConversation(text);
+
+        }
+
+    };
+
+
+    recognition.onerror = function(event) {
+
+        document.getElementById("status").innerText =
+            "Voice error: " + event.error;
+
+        stopListening();
+
+    };
+
+
+    recognition.onend = function() {
+
+        document
+            .getElementById("micButton")
+            .classList.remove("listening");
+
+    };
+
+}
+
+
+function startListening() {
+
+    listeningForQuestion = false;
+
+    if (!recognition) {
+
+        alert(
+            "Voice recognition is not supported in this browser. Please use Safari or Chrome."
+        );
+
+        return;
+
+    }
+
+    try {
+
+        recognition.start();
+
+    } catch (error) {
+
+        console.log(error);
+
+    }
+
+}
+
+
+function stopListening() {
+
+    if (recognition) {
+
+        try {
+            recognition.stop();
+        } catch (error) {
+            console.log(error);
+        }
+
+    }
+
+    document
+        .getElementById("micButton")
+        .classList.remove("listening");
+
+}
+
+
+async function processConversation(text) {
+
+    document.getElementById("status").innerText =
+        "CARE is thinking...";
+
+
+    try {
+
+        const response = await fetch(
+            "/api/understand",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    text: text
+                })
+
+            }
+        );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "CARE AI request failed"
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        currentCustomer = {
+
+            name: data.customer_name || "",
+            mobile: data.mobile || "",
+            email: data.email || "",
+            vehicle: data.vehicle || "",
+            job: data.job_problem || "",
+            work: data.work_needed || "",
+            followup: data.follow_up || "",
+            promise: data.promise || "",
+            memory: data.important_memory || "",
+            reminder_time: data.reminder_time || ""
+        };
+
+        // Automatically create a CARE reminder 10 minutes before the requested time
+        if (data.reminder_time && currentCustomer.name) {
+            const reminderDate = new Date(data.reminder_time);
+
+            reminderDate.setMinutes(reminderDate.getMinutes() - 10);
+
+            const localReminder =
+                reminderDate.getFullYear() + "-" +
+                String(reminderDate.getMonth() + 1).padStart(2, "0") + "-" +
+                String(reminderDate.getDate()).padStart(2, "0") + "T" +
+                String(reminderDate.getHours()).padStart(2, "0") + ":" +
+                String(reminderDate.getMinutes()).padStart(2, "0");
+
+            fetch("/api/reminder", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    customer: currentCustomer.name,
+                    reminder_time: localReminder
+                })
+            })
+            .then(response => response.json())
+            .then(reminder => {
+                console.log("CARE reminder:", reminder);
+
+                if (reminder.success) {
+                    document.getElementById("status").innerText =
+                        "CARE understood your information and set a reminder.";
+                }
+            })
+            .catch(error => {
+                console.error("CARE reminder error:", error);
+            });
+        }
+
+
+
+function displayCustomerMemory() {
+
+    const list = document.getElementById("customerList");
+
+    if (!customers.length) {
+        list.innerText = "No customers saved yet.";
+        return;
+    }
+
+    list.innerHTML = "";
+
+    customers.forEach(function(customer, index) {
+
+        const card = document.createElement("div");
+
+        card.style.padding = "15px 0";
+        card.style.borderBottom = "1px solid #eee";
+
+        card.innerHTML = `
+            <strong>${customer.name || "Unknown customer"}</strong><br>
+            ${customer.mobile || ""}<br>
+            ${customer.email || ""}<br>
+            ${customer.vehicle || ""}<br>
+            <small>${customer.job || ""}</small>
+        `;
+
+        list.appendChild(card);
+
+    });
+
+}
+
+displayCustomerMemory();
+   
+
+     updateDisplay();
+
+
+        document.getElementById("status").innerText =
+            "CARE understood your information.";
+
+
+        speak(
+            "I understood the customer information. Please check it and press Save to CARE."
+        );
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        document.getElementById("status").innerText =
+            "CARE could not connect to the AI.";
+
+        speak(
+            "Sorry, I could not connect to CARE AI."
+        );
+
+    }
+
+}
+
+
+function updateDisplay() {
+
+    document.getElementById("customer").innerText =
+        currentCustomer.name || "—";
+
+    document.getElementById("mobile").innerText =
+        currentCustomer.mobile || "—";
+
+    document.getElementById("email").innerText =
+        currentCustomer.email || "—";
+
+    document.getElementById("vehicle").innerText =
+        currentCustomer.vehicle || "—";
+
+    document.getElementById("job").innerText =
+        currentCustomer.job || "—";
+
+    document.getElementById("work").innerText =
+        currentCustomer.work || "—";
+
+    document.getElementById("followup").innerText =
+        currentCustomer.followup || "—";
+
+    document.getElementById("promise").innerText =
+        currentCustomer.promise || "—";
+
+    document.getElementById("memory").innerText =
+        currentCustomer.memory || "—";
+
+}
+function displayCustomerMemory() {
+
+    const list = document.getElementById("customerList");
+
+    if (!customers.length) {
+        list.innerText = "No customers saved yet.";
+        return;
+    }
+
+    list.innerHTML = "";
+
+    customers.forEach(function(customer, index) {
+
+        const card = document.createElement("div");
+
+        card.style.padding = "15px 0";
+        card.style.cursor = "pointer";
+        card.onclick = function() {
+            currentCustomer = { ...customers[index] };
+            updateDisplay();
+            document.getElementById("status").innerText =
+                "Customer loaded: " + (currentCustomer.name || "Unknown");
+            document.getElementById("customer").scrollIntoView({
+                behavior: "smooth",
+                block: "center"
+            });
+        };
+        card.style.borderBottom = "1px solid #eee";
+
+        card.innerHTML = `
+            <strong>${customer.name || "Unknown customer"}</strong><br>
+            ${customer.mobile || ""}<br>
+            ${customer.email || ""}<br>
+            ${customer.vehicle || ""}<br>
+            <small>${customer.job || ""}</small>
+        `;
+
+        list.appendChild(card);
+    });
+}
+
+displayCustomerMemory();
+
+function saveCustomer() {
+    if (!currentCustomer.name) {
+        speak(
+            "I need the customer name before I can save this."
+        );
+        alert(
+            "Please tell CARE the customer name."
+        );
+        return;
+    }
+
+    const customerData = {
+        ...currentCustomer,
+        date: new Date().toLocaleString()
+    };
+
+    customers.push(customerData);
+
+    localStorage.setItem(
+        "careBusinessCustomers",
+        JSON.stringify(customers)
+    );
+
+    fetch("/api/save_customer", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            name: customerData.name,
+            mobile: customerData.mobile,
+            email: customerData.email,
+            vehicle: customerData.vehicle,
+            job: customerData.job,
+            work: customerData.work,
+            followup: customerData.followup,
+            promise: customerData.promise,
+            memory: customerData.memory,
+            date: customerData.date
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.success) {
+            throw new Error(data.error || "Folder save failed");
+        }
+
+        speak(
+            "Done. " +
+            currentCustomer.name +
+            " has been saved to CARE Business Memory."
+        );
+
+        document.getElementById("status").innerText =
+            "Saved successfully.";
+    })
+    .catch(error => {
+        console.error(error);
+
+        speak(
+            "The customer was saved in CARE, but the local folder could not be saved."
+        );
+
+        document.getElementById("status").innerText =
+            "Saved to CARE, but folder save failed.";
+    });
+
+    displayCustomerMemory();
+}
+
+function speak(text) {
+
+    if (!("speechSynthesis" in window)) {
+        return;
+    }
+
+    window.speechSynthesis.cancel();
+
+    const voice =
+        new SpeechSynthesisUtterance(text);
+
+    voice.lang = "en-US";
+    voice.rate = 0.95;
+    voice.pitch = 1;
+
+    window.speechSynthesis.speak(voice);
+
+}
+
+
+function askCare() {
+
+    if (!recognition) {
+
+        alert(
+            "Voice recognition is not available."
+        );
+
+        return;
+
+    }
+
+
+    listeningForQuestion = true;
+
+    document.getElementById("status").innerText =
+        "Ask CARE your question...";
+
+
+    try {
+
+        recognition.start();
+
+    } catch (error) {
+
+        console.log(error);
+
+    }
+
+}
+
+
+async function processQuestion(question) {
+
+    document.getElementById("status").innerText =
+        "CARE is searching its memory...";
+
+
+    try {
+
+        const response = await fetch(
+            "/api/ask",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+
+                    question: question,
+                    customers: customers
+
+                })
+
+            }
+        );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Ask CARE failed"
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        const answer =
+            data.answer || "I could not find that information.";
+
+
+        document.getElementById("askResult").innerText =
+            answer;
+
+        document.getElementById("askResult").style.display =
+            "block";
+
+
+        document.getElementById("status").innerText =
+            "CARE answered.";
+
+
+        speak(answer);
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        document.getElementById("status").innerText =
+            "Ask CARE is not connected yet.";
+
+        speak(
+            "Ask CARE is not connected yet."
+        );
+
+    }
+
+}
+
+
+updateDisplay();
+
+</script>
+
+</body>
+</html>
